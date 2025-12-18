@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NACOS Financial Control & Audit System</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <h1>NACOS Financial Control & Audit System</h1>
+      <p class="subtitle">Phase 1 – Batch payments, dashboards, and audit history</p>
+    </div>
+    <div class="role-switcher">
+      <label for="roleSelect">Active role</label>
+      <select id="roleSelect">
+        <option value="Admin">Admin</option>
+        <option value="Treasurer">Treasurer</option>
+        <option value="President">President</option>
+        <option value="General Secretary">General Secretary</option>
+      </select>
+      <span class="session-status" id="sessionStatus"></span>
+    </div>
+  </header>
+
+  <main>
+    <section class="grid summary-grid" id="summaryGrid"></section>
+
+    <section class="card">
+      <header class="card-header">
+        <div>
+          <h2>Student Payment Progress</h2>
+          <p class="muted">ND1, ND2, HND1, HND2 – totals configurable by Admin</p>
+        </div>
+        <button id="resetData" class="link danger">Reset demo data</button>
+      </header>
+      <table class="table" id="progressTable">
+        <thead>
+          <tr>
+            <th>Class</th>
+            <th>Total Students</th>
+            <th>Paid</th>
+            <th>Remaining</th>
+            <th>Progress</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <section class="grid forms-grid">
+      <div class="card" id="adminPanel">
+        <h2>Admin Panel</h2>
+        <div class="form-group">
+          <label>Update student totals (cannot reduce below paid)</label>
+          <div class="two-col">
+            <div class="input-pair">
+              <label for="nd1Total">ND1</label>
+              <input type="number" id="nd1Total" min="0">
+            </div>
+            <div class="input-pair">
+              <label for="nd2Total">ND2</label>
+              <input type="number" id="nd2Total" min="0">
+            </div>
+            <div class="input-pair">
+              <label for="hnd1Total">HND1</label>
+              <input type="number" id="hnd1Total" min="0">
+            </div>
+            <div class="input-pair">
+              <label for="hnd2Total">HND2</label>
+              <input type="number" id="hnd2Total" min="0">
+            </div>
+          </div>
+          <button id="saveTotals" class="primary">Save totals</button>
+        </div>
+
+        <div class="form-group">
+          <label for="userName">User management</label>
+          <div class="two-col">
+            <input type="text" id="userName" placeholder="Name (e.g., Jane)">
+            <select id="userRole">
+              <option value="Admin">Admin</option>
+              <option value="Treasurer">Treasurer</option>
+              <option value="President">President</option>
+              <option value="General Secretary">General Secretary</option>
+            </select>
+          </div>
+          <button id="addUser" class="secondary">Add user</button>
+          <div id="userList" class="pill-row"></div>
+        </div>
+
+        <div class="form-group">
+          <label>Financial session</label>
+          <div class="pill-row">
+            <button id="openSession" class="secondary">Open session</button>
+            <button id="closeSession" class="secondary danger">Close session</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="paymentsPanel">
+        <h2>Batch payments</h2>
+        <p class="muted">Amounts are auto-calculated per rule; enter student counts only.</p>
+        <div class="form-group">
+          <label for="paymentClass">Class</label>
+          <select id="paymentClass">
+            <option value="ND1">ND1</option>
+            <option value="ND2">ND2</option>
+            <option value="HND1">HND1</option>
+            <option value="HND2">HND2</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="studentCount">Students in batch</label>
+          <input type="number" id="studentCount" min="1" value="10">
+        </div>
+        <div class="form-group auto-amounts" id="paymentPreview"></div>
+        <button id="addPayment" class="primary">Record payment</button>
+      </div>
+
+      <div class="card" id="expensePanel">
+        <h2>Expenses</h2>
+        <div class="form-group">
+          <label for="expenseCategory">Category</label>
+          <select id="expenseCategory">
+            <option value="Student ID Cards">Student ID Cards</option>
+            <option value="Welfare">Welfare</option>
+            <option value="Cloth (vest)">Cloth (vest)</option>
+            <option value="Executive materials">Executive materials</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="expenseAmount">Amount (₦)</label>
+          <input type="number" id="expenseAmount" min="0" value="0">
+        </div>
+        <button id="addExpense" class="primary">Add expense</button>
+        <p class="muted">Spendable used first; system auto-applies temporary advance from restricted when needed.</p>
+      </div>
+
+      <div class="card" id="advancePanel">
+        <h2>Temporary advance / repayment</h2>
+        <div class="form-group">
+          <label for="advanceAmount">Advance amount (to spendable)</label>
+          <input type="number" id="advanceAmount" min="0" value="0">
+          <button id="takeAdvance" class="secondary">Take advance</button>
+        </div>
+        <div class="form-group">
+          <label for="repaymentAmount">Manual repayment (from spendable)</label>
+          <input type="number" id="repaymentAmount" min="0" value="0">
+          <button id="repayAdvance" class="secondary">Repay advance</button>
+        </div>
+      </div>
+
+      <div class="card" id="receivablePanel">
+        <h2>Receivables & Payables</h2>
+        <div class="form-group">
+          <label for="receivableDesc">Add receivable (expected money)</label>
+          <div class="two-col">
+            <input type="text" id="receivableDesc" placeholder="e.g., ID cards for 20 unpaid students">
+            <input type="number" id="receivableAmount" min="0" placeholder="Amount">
+          </div>
+          <button id="addReceivable" class="secondary">Add receivable</button>
+        </div>
+        <div class="form-group">
+          <label for="payableDesc">Add payable (outstanding supplier balance)</label>
+          <div class="two-col">
+            <input type="text" id="payableDesc" placeholder="e.g., Cloth balance">
+            <input type="number" id="payableAmount" min="0" placeholder="Amount">
+          </div>
+          <button id="addPayable" class="secondary">Add payable</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" id="historyPanel">
+      <header class="card-header">
+        <div>
+          <h2>Audit history</h2>
+          <p class="muted">Every action is recorded with date, user, and amount. Logs are immutable.</p>
+        </div>
+        <div class="pill-row">
+          <button id="exportPayments" class="secondary">Payment summary</button>
+          <button id="exportExpenses" class="secondary">Expense report</button>
+          <button id="exportAdvances" class="secondary">Advance report</button>
+          <button id="exportAudit" class="secondary">Full audit log</button>
+        </div>
+      </header>
+      <div id="historyList" class="history-list"></div>
+    </section>
+  </main>
+
+  <template id="logTemplate">
+    <article class="log-entry">
+      <div>
+        <p class="log-title"></p>
+        <p class="muted log-description"></p>
+      </div>
+      <div class="log-meta"></div>
+    </article>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
